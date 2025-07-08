@@ -1,119 +1,99 @@
-# Capstone-Project-Submission
+# 🚗 Dynamic Pricing for Urban Parking Lots (Summer Analytics 2025)
 
-📄 Report: Dynamic Pricing for Urban Parking Lots
-Project Title: Dynamic Pricing for Urban Parking Spaces
-Submitted for: Summer Analytics 2025
-Team/Student Name: Nikhil Chaudhary
-Platform: Python, Pandas, Numpy, Pathway
-Libraries Used: pandas, numpy, pathway, bokeh
+> An intelligent, real-time pricing engine for 14 urban parking lots using demand modeling, spatial competition, and real-time data streaming.
 
-🧠 Objective
-This project aims to develop a real-time dynamic pricing engine for 14 urban parking spaces using simulated streaming data. The goal is to maximize efficient usage of parking lots by adjusting prices based on demand, traffic, queue length, and competition from nearby lots.
+---
 
-✅ Step-by-Step Approach
-🔹 Step 1: Dataset Overview
-The dataset contains 18,368 records spanning 14 parking lots across 73 days.
+## 🧠 Overview
 
-Each day has 18 time points (30-minute intervals from 8:00 AM to 4:30 PM).
+This project simulates dynamic pricing of limited-capacity parking spaces in an urban environment. The goal is to optimize utilization by adjusting prices in real-time based on factors such as demand, queue length, traffic, special events, vehicle type, and competitive prices from nearby parking lots.
 
-Fields include occupancy, queue length, traffic condition, special events, and vehicle type.
+**Key Features:**
+- Three staged pricing models (Linear, Demand-based, Competitive)
+- Real-time data simulation and pricing via [Pathway](https://pathway.com/)
+- Real-time visualization using Bokeh
+- Rerouting logic for overburdened lots
 
-🔹 Step 2: Model 1 – Baseline Linear Model
-Formula:
+---
 
-Copy
-Edit
-Price[t+1] = Price[t] + α * (Occupancy / Capacity)
-α = 5.0 (sensitivity parameter)
+## 🧰 Tech Stack
 
-Starts from base price $10
+| Component              | Technology                     |
+|------------------------|---------------------------------|
+| Data Processing        | Python, Pandas, NumPy           |
+| Real-Time Engine       | [Pathway](https://pathway.com/) |
+| Visualization          | Bokeh                           |
+| Distance Calculation   | Haversine Formula               |
+| IDE / Platform         | Google Colab                    |
+| Data Format            | CSV (Input), JSONL (Output)     |
 
-Price clamped between $5 and $20
+---
 
-Increases linearly as occupancy increases
+## 🏗️ Architecture Diagram 
 
-🔹 Step 3: Model 2 – Demand-Based Model
-We introduced a custom demand function based on:
 
-Occupancy ratio
+flowchart TD
+    A[Dataset.csv] --> B[Pathway Streaming Reader]
+    B --> C{Pricing Logic}
+    C -->|Model 1| D1[Baseline Linear Model]
+    C -->|Model 2| D2[Demand-Based Model]
+    C -->|Model 3| D3[Competitive + Rerouting]
+    D1 --> E[Streamed Price Output]
+    D2 --> E
+    D3 --> E
+    E --> F[Bokeh Visualization]
+    F --> G[Colab / Report Output]
 
-Queue length
 
-Traffic condition (mapped to numerical scale)
+Project Workflow
+Data Ingestion
 
-Special day indicator
+Read CSV with 14 parking lots and 18 time intervals/day.
 
-Vehicle type weight
+Parsed into a Pathway streaming pipeline with timestamp ordering.
 
-Demand Function:
+Model 1 – Baseline Linear Model
 
-ini
-Copy
-Edit
-Demand = 5*(Occupancy/Capacity) + 2*Queue - 3*Traffic + 4*Special + 1*VehicleType
-Then:
+Price increases linearly with occupancy ratio.
 
-ini
-Copy
-Edit
-Price = BasePrice × (1 + 0.8 × NormalizedDemand)
-Demand was normalized using Min-Max scaling.
+Acts as a control/reference model.
 
-Prices remain smooth and bounded between $5 and $20.
+Model 2 – Demand-Based Model
 
-🔹 Step 4: Model 3 – Competitive Pricing Model
-This model integrates:
+Constructs a weighted demand function using:
 
-Location intelligence using Haversine distance
+Occupancy / Capacity
 
-Nearby lot prices (within 1 km radius)
+Queue Length
 
-Demand-based price adjusted based on nearby lot pricing
+Traffic Level
 
-Logic:
+Special Event flag
 
-If lot is over 95% full and nearby lot is cheaper → reduce price or reroute
+Vehicle type
 
-If nearby lots are expensive → slightly increase price
+Model 3 – Competitive Model
 
-Else → retain Model 2’s demand-based price
+Adds spatial awareness using Haversine distance.
 
-Bonus: A reroute flag is added when the current lot is overburdened.
+Adjusts price based on proximity to cheaper/expensive nearby lots.
 
-🧪 Real-Time Implementation: Pathway
-We implemented the streaming logic using Pathway, simulating real-time price decisions with timestamp-aligned inputs. Our pricing logic runs per-record in real time and is integrated into a pw.io.csv.read → compute → pw.io.jsonlines.write pipeline.
+Triggers reroute suggestion if overcapacity and better nearby options exist.
 
-📊 Visualizations using Bokeh
-We used Bokeh to create the following real-time visualizations:
+Streaming Output
 
-Line Plot: Price trends across time for each parking lot
+Final prices are streamed and logged to pricing_output.jsonl.
 
-Comparison Plot: Current lot vs nearby competitor prices
+Visualization
 
-Reroute Flag Timeline: Highlights when rerouting is triggered
+Bokeh is used to show:
 
-Include screenshots or embed interactive Bokeh plots in the Colab notebook or report.
+Price trends
 
-📌 Assumptions Made
-Demand scaling is based on expected ranges: max 100.
+Lot comparison
 
-Occupancy > 95% is considered “full” for rerouting.
+Reroute flags on timeline
 
-Competitor lot prices are averaged when determining influence.
+Reporting
 
-Vehicle types have demand weights: cycle < bike < car < truck.
-
-We assume each lot's location remains static.
-
-🔁 How Price Responds to Features
-Feature	Effect on Price
-Occupancy ↑	Price ↑
-Queue Length ↑	Price ↑
-Traffic ↑	Price ↓
-Special Day = 1	Price ↑
-Vehicle Type (truck > cycle)	Price ↑
-Nearby lots cheaper	Price ↓ or reroute
-Nearby lots expensive	Price ↑
-
-Prices evolve smoothly with demand and adjust dynamically with competition.
-
+Complete documentation and visualizations included in final Google Colab and PDF report.
